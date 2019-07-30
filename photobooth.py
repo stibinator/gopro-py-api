@@ -11,14 +11,14 @@ class photoBooth(object):
 			print('created output folder' , outputPath)
 		except FileExistsError:
 			print("Directory ", outputPath, " will be used for video output")
-        self.videoLength = videoLength
+		self.videoLength = videoLength
 		self.outputPath = outputPath
 		self.gpCam = GoProCamera.GoPro()
 		self.gpCam.video_settings = settings
 		self.baseURL = baseURL
 		self.gpCam.gpControlSet(constants.Video.PROTUNE_VIDEO, constants.Video.ProTune.ON)
-        # sync the time of the camera to the computer
-        self.gpCam.syncTime()
+		# sync the time of the camera to the computer
+		self.gpCam.syncTime()
 
 	def takeVideo(self):
 		for i in range(3, 0, -1):
