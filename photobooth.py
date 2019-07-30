@@ -1,7 +1,8 @@
 from goprocam import GoProCamera, constants
 import time
 import qrcode
-import ffmpeg
+# import ffmpeg
+import os
 from datetime import datetime
 
 class photoBooth(object):
@@ -27,9 +28,9 @@ class photoBooth(object):
 		now = datetime.now()
 		videoName = '{:04d}-{:02d}-{:02d}_{:02d}-{:02d}-{:02d}.MP4'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 		print("Recording. ")
-		gpCam.shoot_video(videoLength)
+		self.gpCam.shoot_video(self.videoLength)
 		print("downloading shot")
-		gpCam.downloadLastMedia(path=self.outputPath, custom_filename=videoName)
+		self.gpCam.downloadLastMedia(path=self.outputPath, custom_filename=videoName)
 		return videoName
 
 	def showQR(self, videoName):
