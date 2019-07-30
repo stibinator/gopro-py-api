@@ -34,7 +34,7 @@ class photoBooth(object):
 		return videoName
 
 	def showQR(self, videoName):
-		qrText = "http://" + '/'.join(self.baseURL, self.outputPath, videoName)
+		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, videoName))
 		qr = qrcode.make(qrText)
 		qr.show()
 
