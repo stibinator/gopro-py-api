@@ -14,28 +14,41 @@ class photoBooth(object):
 			print("Directory ", outputPath, " will be used for video output")
 		self.videoLength = videoLength
 		self.outputPath = outputPath
-		self.gpCam = GoProCamera.GoPro()
-		self.gpCam.video_settings = settings
-		self.baseURL = baseURL
-		self.gpCam.gpControlSet(constants.Video.PROTUNE_VIDEO, constants.Video.ProTune.ON)
-		# sync the time of the camera to the computer
-		self.gpCam.syncTime()
+		self.lastVideo = None
+		try:
+			self.gpCam = GoProCamera.GoPro()
+			self.gpCam.video_settings = settings
+			self.baseURL = baseURL
+			self.gpCam.gpControlSet(constants.Video.PROTUNE_VIDEO, constants.Video.ProTune.ON)
+			# sync the time of the camera to the computer
+			self.gpCam.syncTime()
+		except:
+			print("there was a problem connecting to the camera.") #well duh
+			#do some error handling stuff here..?
 
 	def takeVideo(self):
-		for i in range(3, 0, -1):
-			print(i)
-			time.sleep(1)
 		now = datetime.now()
 		videoName = '{:04d}-{:02d}-{:02d}_{:02d}-{:02d}-{:02d}.MP4'.format(now.year, now.month, now.day, now.hour, now.minute, now.second)
 		print("Recording. ")
-		self.gpCam.shoot_video(self.videoLength)
-		print("downloading shot")
-		self.gpCam.downloadLastMedia(path=self.outputPath, custom_filename=videoName)
-		return videoName
+		try:
+			self.gpCam.shoot_video(self.videoLength)
+			self.lastVideo = videoName
+		except:
+			self.lastVideo = None
 
-	def showQR(self, videoName):
-		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, videoName))
+	def downloadVideo(self):
+		print("downloading shot")
+		self.gpCam.downloadLastMedia(custom_filename=self.lastVideo)
+
+	def showQR(self):
+		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, self.lastVideo))
 		qr = qrcode.make(qrText)
 		qr.show()
 
-
+	def newSession(self):
+		for i in range(3, 0, -1):
+			print(i)
+			time.sleep(1)
+		self.takeVideo()
+		self.downloadVideo()
+		self.showQR()
