@@ -13,7 +13,7 @@ class photoBooth(object):
 		self.videoLength = videoLength
 		self.settings = settings
 		self.outputPath = outputPath
-		self.baseURL = baseURL # base URL is the external facing URL the user connects to with the QR code
+		self.baseURL = baseURL # base URL is the external-facing URL the user connects to with the QR code
 		self.lastVideo = None
 		try:
 			self.gpCam = self.connectCamera()
@@ -49,6 +49,16 @@ class photoBooth(object):
 		# depending on the platform we can use openCV or a thrird party player like omxplayer on Raspberry Pi
 		# TODO append QR to the end of the video with ffmpeg
 		videoFilePath = os.path.join(self.outputPath, self.lastVideo)
+		# v1 = (ffmpeg
+		# 	.input(videoFilePath, r=25)
+		# )
+		# v2 = (ffmpeg
+		# 	.input(qrCodePath, loop=1, t=2)
+		# 	.filter("scale", "1920/1080")
+		# )
+		# c = ffmpeg.concat(v1, v2).output(processedVideoPath, pix_fmt="yuv420p")
+		# c.run()
+
 		if platform.system() == 'Darwin':       # macOS
 			subprocess.call(('open', videoFilePath))
 		elif platform.system() == 'Windows':    # Windows
