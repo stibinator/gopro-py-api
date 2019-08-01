@@ -1,6 +1,7 @@
 from goprocam import GoProCamera, constants
 from datetime import datetime
-import time, qrcode, keyboard, os, subprocess, platform, ffmpeg
+import time, qrcode, keyboard, os, subprocess, platform
+import ffmpeg #note this is the "ffmpeg-python" module, not the "ffmpeg" module
 
 class photoBooth(object):
 	def __init__(self, outputPath = "goProVids", videoLength = 3, settings = ("1080p","120"), baseURL = "localhost"):
@@ -16,6 +17,7 @@ class photoBooth(object):
 		self.lastVideo = None
 		self.processedVideo = None
 		self.gpCam = self.connectCamera()
+		self.qr = None
 
 	def connectCamera(self):
 		theCamera = None
@@ -55,20 +57,20 @@ class photoBooth(object):
 		videoFilePath = os.path.join(self.outputPath, self.lastVideo)
 		processedVideoName = self.lastVideo.rsplit(".", 1)[0]+"_processed.MP4"
 		processedVideoPath = os.path.join(self.outputPath, processedVideoName)
-		try:
-			v1 = (ffmpeg
-				.input(videoFilePath, r=25)
-			)
-			v2 = (ffmpeg
-				.input(qrCodePath, loop=1, t=2, r=25)
-				.filter("scale", "1920/1080")
-			)
-			c = ffmpeg.concat(v1, v2).output(processedVideoPath, pix_fmt="yuv420p")
-			c.run()
-			self.processedVideo = processedVideoName
-		except:
-			print("error processing video")
-			self.processedVideo = None
+		# try:
+		v1 = (ffmpeg
+			.input(videoFilePath, r=25)
+		)
+		v2 = (ffmpeg
+			.input(qrCodePath, loop=1, t=2, r=25)
+			.filter("scale", "1920/1080")
+		)
+		c = ffmpeg.concat(v1, v2).output(processedVideoPath, pix_fmt="yuv420p")
+		c.run()
+		self.processedVideo = processedVideoName
+		# except:
+		# 	print("error processing video")
+		# 	self.processedVideo = None
 		
 	def playVideo(self):
 		videoFilePath = None
@@ -86,11 +88,16 @@ class photoBooth(object):
 				subprocess.call(('xdg-open', videoFilePath))
 		else:
 			print("No video to play")
+	def makeQR(self):
+		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, self.lastVideo))
+		self.qr = qrcode.make(qrText)
+
+	def saveQR(self):
+
 
 	def showQR(self):
-		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, self.lastVideo))
-		qr = qrcode.make(qrText)
-		qr.show()
+		self.makeQR()
+		self.qr.show()
 
 	def countDown(self):
 		# do fancy countdown shenannigans here, or…
