@@ -1,7 +1,11 @@
-from goprocam import GoProCamera, constants
 from datetime import datetime
-import time, qrcode, keyboard, os, subprocess, platform
-import ffmpeg #note this is the "ffmpeg-python" module, not the "ffmpeg" module
+import time, os, subprocess, platform
+
+from goprocam import GoProCamera, constants # https://pypi.org/project/goprocam/
+import keyboard #https://pypi.org/project/keyboard/
+import pyqrcode # https://pypi.org/project/PyQRCode/
+import png # https://pypi.org/project/pypng/
+import ffmpeg # https://pypi.org/project/ffmpeg-python/
 
 class photoBooth(object):
 	def __init__(self, outputPath = "goProVids", videoLength = 3, settings = ("1080p","120"), baseURL = "localhost"):
@@ -54,23 +58,28 @@ class photoBooth(object):
 		self.gpCam.downloadLastMedia(path='', custom_filename=os.path.join(self.outputPath, self.lastVideo))
 
 	def processVideo(self):
+		# this appends the QR code to the end of the video, just as a proof of concept.
+		# a more complicated ffmpeg script could overlay a MV watermark, add titles and end screens etc.
 		videoFilePath = os.path.join(self.outputPath, self.lastVideo)
 		processedVideoName = self.lastVideo.rsplit(".", 1)[0]+"_processed.MP4"
 		processedVideoPath = os.path.join(self.outputPath, processedVideoName)
-		# try:
-		v1 = (ffmpeg
-			.input(videoFilePath, r=25)
-		)
-		v2 = (ffmpeg
-			.input(qrCodePath, loop=1, t=2, r=25)
-			.filter("scale", "1920/1080")
-		)
-		c = ffmpeg.concat(v1, v2).output(processedVideoPath, pix_fmt="yuv420p")
-		c.run()
-		self.processedVideo = processedVideoName
-		# except:
-		# 	print("error processing video")
-		# 	self.processedVideo = None
+		qrCodePath = os.path.join(self.outputPath, self.lastVideo + ".png")
+		# I've used this ffmpeg module to wrap the processing script for python, but I think it would be simpler to write
+		# the processing script in "pure" ffmpeg, and call it using the shell
+		try:
+			v1 = (ffmpeg
+				.input(videoFilePath, r=25)
+			)
+			v2 = (ffmpeg
+				.input(qrCodePath, loop=1, t=2, r=25)
+				.filter("scale", "1920/1080")
+			)
+			c = ffmpeg.concat(v1, v2).output(processedVideoPath, pix_fmt="yuv420p")
+			c.run()
+			self.processedVideo = processedVideoName
+		except:
+			print("error processing video")
+			self.processedVideo = None
 		
 	def playVideo(self):
 		videoFilePath = None
@@ -88,12 +97,13 @@ class photoBooth(object):
 				subprocess.call(('xdg-open', videoFilePath))
 		else:
 			print("No video to play")
+
 	def makeQR(self):
 		qrText = "http://" + '/'.join((self.baseURL, self.outputPath, self.lastVideo))
-		self.qr = qrcode.make(qrText)
+		self.qr = pyqrcode.create(qrText)
 
 	def saveQR(self):
-
+		self.qr.png(os.path.join (self.outputPath, self.lastVideo + ".png"), scale =6)
 
 	def showQR(self):
 		self.makeQR()
