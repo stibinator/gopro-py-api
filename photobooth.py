@@ -7,7 +7,7 @@ import pyqrcode # https://pypi.org/project/PyQRCode/
 import png # https://pypi.org/project/pypng/
 import ffmpeg # https://pypi.org/project/ffmpeg-python/
 
-class photoBooth(object):
+class PhotoBooth(object):
 	def __init__(self, outputPath = "goProVids", videoLength = 3, settings = ("1080p","120"), baseURL = "localhost"):
 		try:
 			os.mkdir(outputPath)
@@ -17,11 +17,12 @@ class photoBooth(object):
 		self.videoLength = videoLength
 		self.settings = settings
 		self.outputPath = outputPath
-		self.baseURL = baseURL # base URL is the external-facing URL the user connects to with the QR code
-		self.lastVideo = None
+		self.baseURL = baseURL # the user-facing website
+		self.lastVideo = None # the last video taken by the booth
 		self.processedVideo = None
-		self.gpCam = self.connectCamera()
 		self.qr = None
+		# now try to connect to the camera.
+		self.gpCam = self.connectCamera()
 
 	def connectCamera(self):
 		theCamera = None
